@@ -1,0 +1,13 @@
+## Python
+*.pyc
+*.pyo
+*.pyd
+*.egg-info
+.coverage
+.tox
+
+## Virtual environment
+.venv
+
+## Flask or FastAPI application
+.env
