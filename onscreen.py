@@ -3,6 +3,7 @@ import cv2
 import json
 import time
 import numpy as np
+import configuration as cfg
 from PIL import Image, ImageDraw, ImageFont
 from loguru import logger
 
@@ -10,9 +11,7 @@ from loguru import logger
 def get_prices_from_json() -> str:
     """Returns a single string with the prices from 'src/prices.json' file"""
     prices_dict = json.load(open(os.path.join("src", "prices.json")))
-    return "          ".join(
-        [f"{key}: {value.replace(' ', '')}" for key, value in prices_dict.items()]
-    )
+    return "          ".join([f"{key}: {value}" for key, value in prices_dict.items()])
 
 
 def set_video_to_full_screen(video_capture_object):
@@ -21,7 +20,7 @@ def set_video_to_full_screen(video_capture_object):
 
 
 def draw_bg_video_iter() -> np.array:
-    """ Returns an iterator of frames of the background video in brg format.
+    """Returns an iterator with the background video frames in bgr format.
 
     Raises:
         RuntimeError: Error opening video file
@@ -70,13 +69,16 @@ def draw_marquee_frames_iter(width: int, height: int) -> np.array:
 
     # Text and font
     text = get_prices_from_json()
-    font = ImageFont.truetype(os.path.join("src/fonts", "LEDBDREV.TTF"), 32)
-    text_width, text_height = draw.textsize(text, font)
+    font = ImageFont.truetype(os.path.join("src/fonts", cfg.FONT), cfg.FONT_SIZE)
+    bbox = draw.textbbox((0, 0), text, font=font)
+    text_width = bbox[2] - bbox[0]
+    text_height = bbox[3] - bbox[1]
 
     # Initial position and speed
-    x, y = width, (height - text_height-20)
-    speed = 3
+    x, y = width, (height - text_height - cfg.FROM_BOTTOM)
+    speed = cfg.SPEED
 
+    mask = np.zeros((height, width), dtype=bool)  # simple "FALSE" array
 
     while True:
         # Move the text
@@ -85,23 +87,31 @@ def draw_marquee_frames_iter(width: int, height: int) -> np.array:
             x = width
 
         # Clear image
-        draw.rectangle((0, 0, width, height), fill=(0, 0, 0, 255))
+        draw.rectangle((0, 0, width, height), fill=0)
 
-        # Draw text
-        draw.text((x, y), text, font=font, fill=(255, 255, 255, 255))
+        # Creates a new image in grayscale ("L") and fill white color
+        text_image = Image.new("L", (text_width, text_height), color=255)
+        
+        # Drawing context for text_image and creates the text
+        text_draw = ImageDraw.Draw(text_image)
+        text_draw.text((0, 0), text, font=font, fill=0)
 
-        yield np.array(image)
+        # 
+        image.paste(text_image, (x, y), text_image)
+
+        yield np.array(image) # np.array(mask)
 
 
 def play_video_loop():
+    # TODO: timer for every frame
     video_iter = draw_bg_video_iter()
     first_frame = next(video_iter)
     marquee_iter = draw_marquee_frames_iter(first_frame.shape[1], first_frame.shape[0])
-    # set_video_to_full_screen(first_frame)
+    set_video_to_full_screen(first_frame)
 
     while True:
         frame_bg = next(video_iter)
-        frame_marquee = next(marquee_iter)[..., :3]
+        frame_marquee = next(marquee_iter)
 
         # Combine the two frames
         frame = cv2.bitwise_or(frame_marquee, frame_bg)

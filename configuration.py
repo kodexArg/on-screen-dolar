@@ -1,0 +1,5 @@
+SPEED = 3
+FONT = "monosphere.ttf"
+FONT_SIZE = 32
+FONT_COLOR = (255, 255, 255)
+FROM_BOTTOM = 50
