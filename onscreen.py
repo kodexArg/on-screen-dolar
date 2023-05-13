@@ -16,8 +16,6 @@ def get_prices_from_json() -> str:
 
 
 def set_video_to_full_screen(video_capture_object):
-    # REMOVER ESTO:
-    return
     cv2.namedWindow("Video", cv2.WND_PROP_FULLSCREEN)
     cv2.setWindowProperty("Video", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
@@ -52,7 +50,7 @@ def draw_bg_video_iter() -> np.array:
 
 
 def draw_marquee_frames_iter(width: int, height: int) -> np.array:
-    """ Draws the formated text from get_prices_from_json function in a
+    """Draws the formated text from get_prices_from_json function in a
     marquee that cross the screen from right to left.
 
         It's using ttf font located in src/fonts/LEDBDREV.TTF.
@@ -76,8 +74,9 @@ def draw_marquee_frames_iter(width: int, height: int) -> np.array:
     text_width, text_height = draw.textsize(text, font)
 
     # Initial position and speed
-    x, y = width, (height - text_height) // 2  # center of screen (x,y)
+    x, y = width, (height - text_height-20)
     speed = 3
+
 
     while True:
         # Move the text
@@ -98,6 +97,7 @@ def play_video_loop():
     video_iter = draw_bg_video_iter()
     first_frame = next(video_iter)
     marquee_iter = draw_marquee_frames_iter(first_frame.shape[1], first_frame.shape[0])
+    # set_video_to_full_screen(first_frame)
 
     while True:
         frame_bg = next(video_iter)
