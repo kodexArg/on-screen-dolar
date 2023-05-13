@@ -9,8 +9,8 @@
 ## Virtual environment
 .venv/
 
-## Video src, except background.mp4 (as example)
-src/*
+## skp video in src, except background.mp4 (as example)
+src/*.mp4
 !src/background.mp4
 
 ## Flask or FastAPI application
