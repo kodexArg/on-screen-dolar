@@ -8,13 +8,17 @@ from PIL import Image, ImageDraw, ImageFont
 from loguru import logger
 
 
+def get_ms() -> int:
+    return int(round(time.time() * 1000))
+
+
 def get_prices_from_json() -> str:
     """Returns a single string with the prices from 'src/prices.json' file"""
     prices_dict = json.load(open(os.path.join("src", "prices.json")))
     return "          ".join([f"{key}: {value}" for key, value in prices_dict.items()])
 
 
-def set_video_to_full_screen(video_capture_object):
+def set_video_to_full_screen(video_capture_object) -> None:
     cv2.namedWindow("Video", cv2.WND_PROP_FULLSCREEN)
     cv2.setWindowProperty("Video", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
@@ -31,45 +35,45 @@ def draw_bg_video_iter() -> np.array:
     src_dir = "src"
     video_files = os.listdir(src_dir)
     for video_file in video_files:
-        if video_file.endswith(".mp4"):
-            video_file_path = os.path.join(src_dir, video_file)
-            logger.info(f"Loading {video_file_path}")
-            cap = cv2.VideoCapture(video_file_path)
-            if not cap.isOpened():
-                raise RuntimeError(f"Error opening video file '{video_file_path}'")
-            try:
-                # Main Loop cycling through frames of the video
-                while True:
-                    ret, frame = cap.read()
-                    if not ret:
-                        break
-                    yield frame  # np.array()
-            finally:
-                cap.release()
+        if not video_file.endswith(".mp4"):
+            continue
+
+        video_file_path = os.path.join(src_dir, video_file)
+        logger.info(f"Loading {video_file_path}")
+        cap = cv2.VideoCapture(video_file_path)
+
+        if not cap.isOpened():
+            raise RuntimeError(f"Error opening video file '{video_file_path}'")
+        try:
+            # Get the width and height of the video
+            width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+            height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+
+            # Create an empty RGBA image
+            image = Image.new("RGBA", (width, height), (0, 0, 0, 0))
+
+            # Main Loop cycling through frames of the video
+            while True:
+                ret, frame = cap.read()
+                if not ret:
+                    break
+
+                # Convert the frame from BGR to RGBA
+                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
+
+                yield frame  # np.array()
+        finally:
+            cap.release()
 
 
 def draw_marquee_frames_iter(width: int, height: int) -> np.array:
-    """Draws the formated text from get_prices_from_json function in a
-    marquee that cross the screen from right to left.
-
-        It's using ttf font located in src/fonts/LEDBDREV.TTF.
-
-        Speed is hardcoded in the 'speed' variable (3 atm).
-
-    Args:
-        width (int): value from background video
-        height (int): value from background video
-
-    Yields:
-        Iterator[np.array]: a frame with white text over black background
-    """
     # Image and Draw context
-    image = Image.new("RGB", (width, height), color=(0, 0, 0))
+    image = Image.new("RGBA", (width, height), color=(0, 0, 0, 0))
     draw = ImageDraw.Draw(image)
 
     # Text and font
     text = get_prices_from_json()
-    font = ImageFont.truetype(os.path.join("src/fonts", cfg.FONT), cfg.FONT_SIZE)
+    font = ImageFont.truetype(cfg.FONT, cfg.FONT_SIZE)
     bbox = draw.textbbox((0, 0), text, font=font)
     text_width = bbox[2] - bbox[0]
     text_height = bbox[3] - bbox[1]
@@ -78,32 +82,39 @@ def draw_marquee_frames_iter(width: int, height: int) -> np.array:
     x, y = width, (height - text_height - cfg.FROM_BOTTOM)
     speed = cfg.SPEED
 
-    mask = np.zeros((height, width), dtype=bool)  # simple "FALSE" array
-
     while True:
+        starting_time = get_ms()
+
         # Move the text
         x -= speed
         if x < -text_width:
             x = width
 
-        # Clear image
+        # Clear
         draw.rectangle((0, 0, width, height), fill=0)
 
         # Creates a new image in grayscale ("L") and fill white color
-        text_image = Image.new("L", (text_width, text_height), color=255)
-        
+        text_image = Image.new("L", (text_width, text_height), color=0)
+
         # Drawing context for text_image and creates the text
         text_draw = ImageDraw.Draw(text_image)
-        text_draw.text((0, 0), text, font=font, fill=0)
+        text_draw.text((0, 0), text, font=font, fill=255)
 
-        # 
+        # Combine text with background
         image.paste(text_image, (x, y), text_image)
 
-        yield np.array(image) # np.array(mask)
+        # Sleep until next frame is ready. FPS default 25 ms
+        finish_time = get_ms()
+        if starting_time + cfg.FPS > finish_time:
+            time.sleep((starting_time + cfg.FPS - finish_time) / 1000.0)
+
+        # Marquee frame in a 4 dmiension array
+        yield np.array(image)  
 
 
-def play_video_loop():
+def play_video_loop() -> None:
     # TODO: timer for every frame
+    time_ms = get_ms()
     video_iter = draw_bg_video_iter()
     first_frame = next(video_iter)
     marquee_iter = draw_marquee_frames_iter(first_frame.shape[1], first_frame.shape[0])
@@ -114,7 +125,7 @@ def play_video_loop():
         frame_marquee = next(marquee_iter)
 
         # Combine the two frames
-        frame = cv2.bitwise_or(frame_marquee, frame_bg)
+        frame = cv2.addWeighted(frame_bg, 1, frame_marquee, 1, 0)
 
         # Show the frame
         cv2.imshow("Video", frame)
@@ -124,7 +135,7 @@ def play_video_loop():
             exit()
 
 
-def main():
+def main() -> None:
     play_video_loop()
 
 
