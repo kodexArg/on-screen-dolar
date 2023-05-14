@@ -15,3 +15,7 @@ src/*.mp4
 
 ## Flask or FastAPI application
 .env
+
+## Developer
+**/.vscode
+**/__pycache__
