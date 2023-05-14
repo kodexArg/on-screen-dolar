@@ -128,12 +128,9 @@ def play_video_loop() -> None:
         # Band of marquee size
         band_top = height - cfg.BAND_BOTTOM
         band_low = height - cfg.BAND_TOP
-
         frame_bg[band_low: band_top] = frame_bg[band_low: band_top] * .5
 
-
         # Alpha blending
-
         frame = cv2.addWeighted(frame_bg, 1, frame_marquee, 1, 0)
 
         # Show the frame
