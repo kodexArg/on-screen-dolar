@@ -1,0 +1,6 @@
+2023-05-14 03:20:35.172 | INFO     | __main__:load_prices:40 - Prices loaded
+2023-05-14 03:20:36.230 | INFO     | __main__:set_price:66 - Prices updated
+2023-05-14 03:23:39.151 | INFO     | __main__:load_prices:40 - Prices loaded
+2023-05-14 03:23:40.049 | ERROR    | __main__:listener:124 - Error: CPL La moneda no se encuentra en la lista
+2023-05-14 03:24:04.751 | INFO     | __main__:load_prices:40 - Prices loaded
+2023-05-14 03:24:05.710 | INFO     | __main__:set_price:66 - Prices updated
