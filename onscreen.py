@@ -15,7 +15,7 @@ def get_ms() -> int:
 def get_prices_from_json() -> str:
     """Returns a single string with the prices from 'src/prices.json' file"""
     prices_dict = json.load(open(os.path.join("src", "prices.json")))
-    return "          ".join([f"{key}: {value}" for key, value in prices_dict.items()])
+    return "     ".join([f"{key}: {value}" for key, value in prices_dict.items()])
 
 
 def set_video_to_full_screen(video_capture_object) -> None:
@@ -79,7 +79,7 @@ def draw_marquee_frames_iter(width: int, height: int) -> np.array:
     text_height = bbox[3] - bbox[1]
 
     # Initial position and speed
-    x, y = width, (height - text_height - cfg.FROM_BOTTOM)
+    x, y = width, (height - text_height - cfg.TEXT_BOTTOM)
     speed = cfg.SPEED
 
     while True:
@@ -109,22 +109,31 @@ def draw_marquee_frames_iter(width: int, height: int) -> np.array:
             time.sleep((starting_time + cfg.FPS - finish_time) / 1000.0)
 
         # Marquee frame in a 4 dmiension array
-        yield np.array(image)  
+        yield np.array(image)
 
 
 def play_video_loop() -> None:
     # TODO: timer for every frame
-    time_ms = get_ms()
     video_iter = draw_bg_video_iter()
     first_frame = next(video_iter)
-    marquee_iter = draw_marquee_frames_iter(first_frame.shape[1], first_frame.shape[0])
+    height, width = first_frame.shape[:2]
+
+    marquee_iter = draw_marquee_frames_iter(width, height)
     set_video_to_full_screen(first_frame)
 
     while True:
         frame_bg = next(video_iter)
         frame_marquee = next(marquee_iter)
 
-        # Combine the two frames
+        # Band of marquee size
+        band_top = height - cfg.BAND_BOTTOM
+        band_low = height - cfg.BAND_TOP
+
+        frame_bg[band_low: band_top] = frame_bg[band_low: band_top] * .5
+
+
+        # Alpha blending
+
         frame = cv2.addWeighted(frame_bg, 1, frame_marquee, 1, 0)
 
         # Show the frame
