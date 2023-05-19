@@ -4,3 +4,8 @@
 2023-05-14 03:23:40.049 | ERROR    | __main__:listener:124 - Error: CPL La moneda no se encuentra en la lista
 2023-05-14 03:24:04.751 | INFO     | __main__:load_prices:40 - Prices loaded
 2023-05-14 03:24:05.710 | INFO     | __main__:set_price:66 - Prices updated
+2023-05-15 11:44:16.388 | INFO     | __main__:load_prices:40 - Prices loaded
+2023-05-15 11:44:17.565 | INFO     | __main__:set_price:66 - Prices updated
+2023-05-15 11:44:39.273 | INFO     | __main__:load_prices:40 - Prices loaded
+2023-05-15 11:44:40.504 | INFO     | __main__:set_price:66 - Prices updated
+2023-05-15 11:55:48.899 | WARNING  | __main__:incorrect_format:97 - Mensaje recibido de Kod Ex (780726530): Message(channel_chat_created=False, chat=Chat(first_name='Kod', id=780726530, last_name='Ex', type=<ChatType.PRIVATE>, username='KodexArg'), date=datetime.datetime(2023, 5, 15, 14, 55, 30, tzinfo=datetime.timezone.utc), delete_chat_photo=False, forward_date=datetime.datetime(2023, 5, 15, 14, 52, 12, tzinfo=datetime.timezone.utc), forward_from=User(first_name='Jere', id=1263709899, is_bot=False, last_name='Ezquerro', username='jeremiasezquerro'), from_user=User(first_name='Kod', id=780726530, is_bot=False, language_code='en', last_name='Ex', username='KodexArg'), group_chat_created=False, message_id=114, supergroup_chat_created=False, text='Buen día \n\n🇺🇸Dólar    464 y 474\n🇺🇸Dólar cc 455 y 469\n🇪🇺Euro     530 y 552 (1.14/1.16)\n🇪🇺 €500   510 y 545\n🇨🇱Chile    0,510 y 0.575\n🇧🇷Real     80.00 y 90.00\n🇦🇷Arg.     230.50 y 238.50\nIMP + 65% = 393.50 x dólar')
